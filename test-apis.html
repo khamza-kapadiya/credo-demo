@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Credo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Credo API Test Dashboard</h1>
+    <p>Test your Vercel API endpoints directly</p>
+
+    <div class="test-section">
+        <h3>Team Members API</h3>
+        <button class="test-button" onclick="testTeamMembers()">Test /api/team-members</button>
+        <div id="team-members-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Recognitions API</h3>
+        <button class="test-button" onclick="testRecognitions()">Test /api/recognitions</button>
+        <div id="recognitions-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Stats API</h3>
+        <button class="test-button" onclick="testStats()">Test /api/stats</button>
+        <div id="stats-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Send Test Recognition</h3>
+        <button class="test-button" onclick="testSendRecognition()">Send Test Recognition</button>
+        <div id="send-result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const baseUrl = 'https://credo-demo-nvmxcu2kj-hamzas-projects-eeeb5fd9.vercel.app';
+
+        async function testAPI(url, resultElementId, method = 'GET', body = null) {
+            const resultElement = document.getElementById(resultElementId);
+            resultElement.style.display = 'block';
+            resultElement.textContent = 'Testing...';
+            resultElement.className = 'result';
+
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(url, options);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultElement.className = 'result success';
+                    resultElement.textContent = `✅ SUCCESS (${response.status})\n\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultElement.className = 'result error';
+                    resultElement.textContent = `❌ ERROR (${response.status})\n\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultElement.className = 'result error';
+                resultElement.textContent = `❌ NETWORK ERROR\n\n${error.message}`;
+            }
+        }
+
+        function testTeamMembers() {
+            testAPI(`${baseUrl}/api/team-members`, 'team-members-result');
+        }
+
+        function testRecognitions() {
+            testAPI(`${baseUrl}/api/recognitions`, 'recognitions-result');
+        }
+
+        function testStats() {
+            testAPI(`${baseUrl}/api/stats`, 'stats-result');
+        }
+
+        function testSendRecognition() {
+            const testRecognition = {
+                from_user: "Test User",
+                to_user: "Sarah Chen",
+                message: "This is a test recognition from the API test page!",
+                value: "Excellence",
+                points: 25
+            };
+            testAPI(`${baseUrl}/api/recognitions`, 'send-result', 'POST', testRecognition);
+        }
+    </script>
+</body>
+</html>
