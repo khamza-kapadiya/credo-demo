@@ -1,52 +1,4 @@
-// Vercel serverless function for team members
-const sqlite3 = require('sqlite3').verbose();
-
-// Use in-memory database for Vercel
-const db = new sqlite3.Database(':memory:');
-
-// Initialize database with sample data
-db.serialize(() => {
-  // Create team_members table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS team_members (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      avatar TEXT NOT NULL,
-      role TEXT NOT NULL,
-      department TEXT NOT NULL
-    )
-  `);
-
-  // Insert sample data
-  db.get("SELECT COUNT(*) as count FROM team_members", (err, row) => {
-    if (err) {
-      console.error('Error checking team_members:', err);
-      return;
-    }
-    
-    if (row.count === 0) {
-      const sampleMembers = [
-        { name: "Sarah Chen", avatar: "SC", role: "Senior Full-Stack Developer", department: "Engineering" },
-        { name: "Mike Johnson", avatar: "MJ", role: "Product Manager", department: "Product" },
-        { name: "Emma Wilson", avatar: "EW", role: "Frontend Developer", department: "Engineering" },
-        { name: "Alex Rivera", avatar: "AR", role: "Senior UX Designer", department: "Design" },
-        { name: "David Kim", avatar: "DK", role: "Data Scientist", department: "Analytics" }
-      ];
-
-      const stmt = db.prepare(`
-        INSERT INTO team_members (name, avatar, role, department)
-        VALUES (?, ?, ?, ?)
-      `);
-
-      sampleMembers.forEach(member => {
-        stmt.run(member.name, member.avatar, member.role, member.department);
-      });
-
-      stmt.finalize();
-    }
-  });
-});
-
+// Simple Vercel serverless function for team members
 module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -60,15 +12,21 @@ module.exports = function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Get all team members
-    db.all('SELECT * FROM team_members', (err, rows) => {
-      if (err) {
-        console.error('Error fetching team members:', err);
-        res.status(500).json({ error: 'Failed to fetch team members' });
-        return;
-      }
-      res.json(rows || []);
-    });
+    // Return static team members data
+    const teamMembers = [
+      { id: 1, name: "Sarah Chen", avatar: "SC", role: "Senior Full-Stack Developer", department: "Engineering" },
+      { id: 2, name: "Mike Johnson", avatar: "MJ", role: "Product Manager", department: "Product" },
+      { id: 3, name: "Emma Wilson", avatar: "EW", role: "Frontend Developer", department: "Engineering" },
+      { id: 4, name: "Alex Rivera", avatar: "AR", role: "Senior UX Designer", department: "Design" },
+      { id: 5, name: "David Kim", avatar: "DK", role: "Data Scientist", department: "Analytics" },
+      { id: 6, name: "Lisa Zhang", avatar: "LZ", role: "Backend Developer", department: "Engineering" },
+      { id: 7, name: "James Rodriguez", avatar: "JR", role: "DevOps Engineer", department: "Infrastructure" },
+      { id: 8, name: "Maria Garcia", avatar: "MG", role: "QA Engineer", department: "Quality Assurance" },
+      { id: 9, name: "Ahmed Hassan", avatar: "AH", role: "Mobile Developer", department: "Engineering" },
+      { id: 10, name: "Priya Patel", avatar: "PP", role: "Product Designer", department: "Design" }
+    ];
+    
+    res.json(teamMembers);
   } else {
     res.setHeader('Allow', ['GET']);
     res.status(405).end(`Method ${req.method} Not Allowed`);

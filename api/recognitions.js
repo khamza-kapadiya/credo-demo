@@ -1,66 +1,4 @@
-// Vercel serverless function for recognitions
-const sqlite3 = require('sqlite3').verbose();
-
-// Use in-memory database for Vercel
-const db = new sqlite3.Database(':memory:');
-
-// Initialize database with sample data
-db.serialize(() => {
-  // Create recognitions table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS recognitions (
-      id TEXT PRIMARY KEY,
-      from_user TEXT NOT NULL,
-      to_user TEXT NOT NULL,
-      message TEXT NOT NULL,
-      value TEXT NOT NULL,
-      points INTEGER NOT NULL,
-      created_at TEXT NOT NULL
-    )
-  `);
-
-  // Insert sample data
-  db.get("SELECT COUNT(*) as count FROM recognitions", (err, row) => {
-    if (err) {
-      console.error('Error checking recognitions:', err);
-      return;
-    }
-    
-    if (row.count === 0) {
-      const sampleRecognitions = [
-        {
-          id: generateUUID(),
-          from_user: "Sarah Chen",
-          to_user: "Mike Johnson",
-          message: "Outstanding leadership on the Q4 product launch! Your strategic vision and execution were exceptional.",
-          value: "Excellence",
-          points: 50,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: generateUUID(),
-          from_user: "Emma Wilson",
-          to_user: "Alex Rivera",
-          message: "Your UX designs for the new dashboard are absolutely stunning! The user feedback has been overwhelmingly positive.",
-          value: "Innovation",
-          points: 40,
-          created_at: new Date().toISOString()
-        }
-      ];
-
-      const stmt = db.prepare(`
-        INSERT INTO recognitions (id, from_user, to_user, message, value, points, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      sampleRecognitions.forEach(rec => {
-        stmt.run(rec.id, rec.from_user, rec.to_user, rec.message, rec.value, rec.points, rec.created_at);
-      });
-
-      stmt.finalize();
-    }
-  });
-});
+// Simple Vercel serverless function for recognitions
 
 // Generate UUID function
 function generateUUID() {
@@ -84,15 +22,38 @@ module.exports = function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Get all recognitions
-    db.all('SELECT * FROM recognitions ORDER BY created_at DESC', (err, rows) => {
-      if (err) {
-        console.error('Error fetching recognitions:', err);
-        res.status(500).json({ error: 'Failed to fetch recognitions' });
-        return;
+    // Return static recognitions data
+    const recognitions = [
+      {
+        id: "1",
+        from_user: "Sarah Chen",
+        to_user: "Mike Johnson", 
+        message: "Outstanding leadership on the Q4 product launch! Your strategic vision and execution were exceptional. The team couldn't have done it without you.",
+        value: "Excellence",
+        points: 50,
+        created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: "2",
+        from_user: "Emma Wilson",
+        to_user: "Alex Rivera",
+        message: "Your UX designs for the new dashboard are absolutely stunning! The user feedback has been overwhelmingly positive. You truly understand our users.",
+        value: "Innovation",
+        points: 40,
+        created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: "3",
+        from_user: "David Kim",
+        to_user: "Sarah Chen",
+        message: "Thank you for the amazing code review session! Your insights helped me optimize the algorithm by 30%. Your mentorship is invaluable.",
+        value: "Collaboration",
+        points: 35,
+        created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
       }
-      res.json(rows || []);
-    });
+    ];
+    
+    res.json(recognitions);
   } else if (req.method === 'POST') {
     // Add new recognition
     const { from_user, to_user, message, value, points } = req.body;
@@ -104,30 +65,19 @@ module.exports = function handler(req, res) {
 
     const id = generateUUID();
     const created_at = new Date().toISOString();
-
-    db.run(
-      'INSERT INTO recognitions (id, from_user, to_user, message, value, points, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [id, from_user, to_user, message, value, points, created_at],
-      function(err) {
-        if (err) {
-          console.error('Error adding recognition:', err);
-          res.status(500).json({ error: 'Failed to add recognition' });
-          return;
-        }
-        
-        res.json({
-          id,
-          from_user,
-          to_user,
-          message,
-          value,
-          points,
-          created_at
-        });
-      }
-    );
+    
+    // Return the new recognition (in a real app, this would be saved to database)
+    res.json({
+      id,
+      from_user,
+      to_user,
+      message,
+      value,
+      points,
+      created_at
+    });
   } else {
     res.setHeader('Allow', ['GET', 'POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
-}
+};
