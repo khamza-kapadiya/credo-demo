@@ -1,12 +1,53 @@
 // Vercel serverless function for team members
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
 
-// Initialize SQLite database
-const dbPath = path.join(__dirname, '../backend/credo.db');
-const db = new sqlite3.Database(dbPath);
+// Use in-memory database for Vercel
+const db = new sqlite3.Database(':memory:');
 
-export default function handler(req, res) {
+// Initialize database with sample data
+db.serialize(() => {
+  // Create team_members table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS team_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      avatar TEXT NOT NULL,
+      role TEXT NOT NULL,
+      department TEXT NOT NULL
+    )
+  `);
+
+  // Insert sample data
+  db.get("SELECT COUNT(*) as count FROM team_members", (err, row) => {
+    if (err) {
+      console.error('Error checking team_members:', err);
+      return;
+    }
+    
+    if (row.count === 0) {
+      const sampleMembers = [
+        { name: "Sarah Chen", avatar: "SC", role: "Senior Full-Stack Developer", department: "Engineering" },
+        { name: "Mike Johnson", avatar: "MJ", role: "Product Manager", department: "Product" },
+        { name: "Emma Wilson", avatar: "EW", role: "Frontend Developer", department: "Engineering" },
+        { name: "Alex Rivera", avatar: "AR", role: "Senior UX Designer", department: "Design" },
+        { name: "David Kim", avatar: "DK", role: "Data Scientist", department: "Analytics" }
+      ];
+
+      const stmt = db.prepare(`
+        INSERT INTO team_members (name, avatar, role, department)
+        VALUES (?, ?, ?, ?)
+      `);
+
+      sampleMembers.forEach(member => {
+        stmt.run(member.name, member.avatar, member.role, member.department);
+      });
+
+      stmt.finalize();
+    }
+  });
+});
+
+module.exports = function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -32,4 +73,4 @@ export default function handler(req, res) {
     res.setHeader('Allow', ['GET']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
-}
+};
