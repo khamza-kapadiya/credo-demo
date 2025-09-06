@@ -172,6 +172,5 @@ export const api = {
       console.error('API Error:', error);
       return { ...demoStats }; // Fallback to demo data
     }
-  },
+  }
 };
-d ..
