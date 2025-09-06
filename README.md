@@ -2,13 +2,15 @@
 
 A modern web application for employee recognition and engagement built with React, TypeScript, and Tailwind CSS.
 
-## Features
+## ✨ Features
 
-- 📊 **Dashboard** - Personal and team analytics
+- 📊 **Dashboard** - Personal and team analytics with interactive charts
 - 💝 **Recognition Feed** - Instagram/LinkedIn style recognition wall
 - 🎤 **Voice-to-Kudos** - Send recognition using voice commands
 - 🏆 **Recognition Marketplace** - Redeem points for rewards
 - 📈 **Analytics** - Track recognition trends and insights
+- 🗄️ **Database Viewer** - View all recognition data
+- 🤖 **AI Suggestions** - Smart recognition message suggestions
 
 ## Getting Started
 
@@ -29,7 +31,7 @@ Make sure you have Node.js installed on your computer. You can download it from 
    ```
 
 3. **Open your browser:**
-   The app will automatically open at `http://localhost:3000`
+   The app will automatically open at `http://localhost:5173`
 
 ### Available Scripts
 
@@ -52,24 +54,26 @@ src/
 └── index.css          # Global styles
 ```
 
-## Technology Stack
+## 🚀 Technology Stack
 
 - **React 18** - UI library
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
 - **Vite** - Build tool
 - **Lucide React** - Icons
+- **Framer Motion** - Animations
+- **Recharts** - Data visualization
+- **React Hot Toast** - Notifications
 
-## Next Steps
+## 🌐 Deployment
 
-Once you have the basic app running, we can add more features:
+This app is ready for deployment to Vercel:
 
-1. Recognition Feed page
-2. Kudos Center with voice-to-text
-3. Marketplace for rewards
-4. Analytics dashboard
-5. User authentication
-6. Backend integration
+1. **Push to GitHub** repository
+2. **Connect to Vercel** 
+3. **Deploy automatically**
+
+The app uses demo data and works perfectly as a static site without requiring a backend.
 
 ## Troubleshooting
 
@@ -77,7 +81,7 @@ If you encounter any issues:
 
 1. Make sure Node.js is installed
 2. Delete `node_modules` folder and run `npm install` again
-3. Check that port 3000 is not being used by another application
+3. Check that port 5173 is not being used by another application
 
 ## Support
 

@@ -8,7 +8,7 @@ import {
   RefreshCw,
   Eye,
 } from 'lucide-react'
-import { api } from '../services/api.demo'
+import { api } from '../services/api.smart' // Smart API: demo locally, real API in production
 import toast from 'react-hot-toast'
 
 const DatabaseViewer: React.FC = () => {

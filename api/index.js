@@ -1,17 +1,25 @@
+// Vercel serverless function for the backend API
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Initialize SQLite database
-const dbPath = path.join(__dirname, 'credo.db');
+// Initialize SQLite database - handle Vercel's file system
+let dbPath;
+try {
+  // Try to use the backend database file
+  dbPath = path.join(__dirname, '../backend/credo.db');
+} catch (error) {
+  // Fallback to temporary database for Vercel
+  dbPath = ':memory:';
+}
+
 const db = new sqlite3.Database(dbPath);
 
 // Initialize database tables
@@ -19,13 +27,13 @@ db.serialize(() => {
   // Create recognitions table
   db.run(`
     CREATE TABLE IF NOT EXISTS recognitions (
-      id TEXT PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       from_user TEXT NOT NULL,
       to_user TEXT NOT NULL,
       message TEXT NOT NULL,
       value TEXT NOT NULL,
       points INTEGER NOT NULL,
-      created_at TEXT NOT NULL
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
@@ -48,7 +56,6 @@ db.serialize(() => {
     }
     
     if (row.count === 0) {
-      // Insert sample recognitions
       const sampleRecognitions = [
         {
           from_user: "Sarah Chen",
@@ -63,13 +70,6 @@ db.serialize(() => {
           message: "Your UX designs for the new dashboard are absolutely stunning! The user feedback has been overwhelmingly positive.",
           value: "Innovation",
           points: 40
-        },
-        {
-          from_user: "David Kim",
-          to_user: "Sarah Chen",
-          message: "Thank you for the amazing code review session! Your insights helped me optimize the algorithm by 30%.",
-          value: "Collaboration",
-          points: 35
         }
       ];
 
@@ -93,7 +93,6 @@ db.serialize(() => {
     }
     
     if (row.count === 0) {
-      // Insert sample team members
       const sampleMembers = [
         { name: "Sarah Chen", avatar: "SC", role: "Senior Full-Stack Developer", department: "Engineering" },
         { name: "Mike Johnson", avatar: "MJ", role: "Product Manager", department: "Product" },
@@ -119,7 +118,7 @@ db.serialize(() => {
 // API Routes
 
 // Get all recognitions
-app.get('/api/recognitions', (req, res) => {
+app.get('/recognitions', (req, res) => {
   db.all('SELECT * FROM recognitions ORDER BY created_at DESC', (err, rows) => {
     if (err) {
       console.error('Error fetching recognitions:', err);
@@ -130,17 +129,8 @@ app.get('/api/recognitions', (req, res) => {
   });
 });
 
-// Generate UUID function
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
 // Add new recognition
-app.post('/api/recognitions', (req, res) => {
+app.post('/recognitions', (req, res) => {
   const { from_user, to_user, message, value, points } = req.body;
   
   if (!from_user || !to_user || !message || !value || !points) {
@@ -148,56 +138,31 @@ app.post('/api/recognitions', (req, res) => {
     return;
   }
 
-  const id = generateUUID();
-  const created_at = new Date().toISOString();
-
-  // Try with new schema first, fallback to old schema
   db.run(
-    'INSERT INTO recognitions (id, from_user, to_user, message, value, points, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [id, from_user, to_user, message, value, points, created_at],
+    'INSERT INTO recognitions (from_user, to_user, message, value, points) VALUES (?, ?, ?, ?, ?)',
+    [from_user, to_user, message, value, points],
     function(err) {
       if (err) {
-        // Fallback to old schema without ID
-        console.log('Trying old schema...');
-        db.run(
-          'INSERT INTO recognitions (from_user, to_user, message, value, points) VALUES (?, ?, ?, ?, ?)',
-          [from_user, to_user, message, value, points],
-          function(err2) {
-            if (err2) {
-              console.error('Error adding recognition:', err2);
-              res.status(500).json({ error: 'Failed to add recognition' });
-              return;
-            }
-            
-            res.json({
-              id: generateUUID(), // Generate ID on response
-              from_user,
-              to_user,
-              message,
-              value,
-              points,
-              created_at: new Date().toISOString()
-            });
-          }
-        );
+        console.error('Error adding recognition:', err);
+        res.status(500).json({ error: 'Failed to add recognition' });
         return;
       }
       
       res.json({
-        id,
+        id: this.lastID,
         from_user,
         to_user,
         message,
         value,
         points,
-        created_at
+        created_at: new Date().toISOString()
       });
     }
   );
 });
 
 // Get all team members
-app.get('/api/team-members', (req, res) => {
+app.get('/team-members', (req, res) => {
   db.all('SELECT * FROM team_members', (err, rows) => {
     if (err) {
       console.error('Error fetching team members:', err);
@@ -209,7 +174,7 @@ app.get('/api/team-members', (req, res) => {
 });
 
 // Get stats
-app.get('/api/stats', (req, res) => {
+app.get('/stats', (req, res) => {
   db.get('SELECT COUNT(*) as totalRecognitions FROM recognitions', (err, recCount) => {
     if (err) {
       console.error('Error fetching recognition count:', err);
@@ -235,24 +200,9 @@ app.get('/api/stats', (req, res) => {
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Credo API is running' });
 });
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-// Start server
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 Database: SQLite (${dbPath})`);
-    console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
-  });
-}
 
 // Export for Vercel
 module.exports = app;

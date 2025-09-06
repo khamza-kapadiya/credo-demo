@@ -12,7 +12,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell, AreaChart, Area } from 'recharts'
-import { api } from '../services/api.demo'
+import { api } from '../services/api.smart' // Smart API: demo locally, real API in production
 import toast from 'react-hot-toast'
 
 const Analytics: React.FC = () => {

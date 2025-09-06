@@ -10,7 +10,7 @@ import {
   Star
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
-import { api } from '../services/api.demo'
+import { api } from '../services/api.smart' // Smart API: demo locally, real API in production
 
 const Dashboard: React.FC = () => {
   // State for real-time data

@@ -2,7 +2,7 @@
 const API_BASE_URL = '/api'; // Use relative URLs for Vercel deployment
 
 export interface Recognition {
-  id: string;
+  id: string | number;
   from_user: string;
   to_user: string;
   message: string;
@@ -28,11 +28,17 @@ export interface Stats {
 
 export const api = {
   getRecognitions: async (): Promise<Recognition[]> => {
-    const response = await fetch(`${API_BASE_URL}/recognitions`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch recognitions');
+    try {
+      const response = await fetch(`${API_BASE_URL}/recognitions`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch recognitions');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      // Fallback to demo data if API fails
+      return [];
     }
-    return response.json();
   },
 
   addRecognition: async (recognition: Omit<Recognition, 'id' | 'created_at'>): Promise<Recognition> => {

@@ -18,7 +18,7 @@ import {
   MessageSquare,
   Star
 } from 'lucide-react'
-import { api, type TeamMember } from '../services/api.demo'
+import { api, type TeamMember } from '../services/api.local' // Local API: connects to backend database
 import toast from 'react-hot-toast'
 
 // Remove the duplicate interface since we're importing it
@@ -56,9 +56,12 @@ const KudosCenter: React.FC = () => {
         // Loading complete
       }
     }
-    
+
+  
     loadTeamMembers()
   }, [])
+
+  // Voice-to-text functionality enhanced
 
   const recognitionValues: RecognitionValue[] = [
     {
@@ -106,11 +109,14 @@ const KudosCenter: React.FC = () => {
   ]
 
   const aiSuggestions = [
-    "Great work on the recent project! Your attention to detail really made the difference.",
-    "Thank you for your excellent collaboration on the team initiative.",
-    "Your innovative approach to solving this challenge was impressive!",
-    "Outstanding leadership during the recent sprint. You kept everyone motivated!",
-    "Your dedication to quality and continuous improvement is inspiring."
+    "Your innovative approach to solving complex problems is truly inspiring. The way you think outside the box brings fresh perspectives to our team.",
+    "Thank you for going above and beyond to help the team succeed. Your dedication and commitment don't go unnoticed.",
+    "Your attention to detail and thoroughness in this project was exceptional. The quality of your work sets a high standard for all of us.",
+    "The way you collaborate and support your teammates is remarkable. You make everyone around you better.",
+    "Your leadership during challenging times has been outstanding. Thank you for guiding us through this successfully.",
+    "Your communication skills and ability to explain complex concepts simply is a gift. You make everyone feel included and informed.",
+    "The creativity and innovation you bring to every project is amazing. You consistently find solutions we never thought possible.",
+    "Your positive attitude and energy are contagious. You make coming to work enjoyable for everyone on the team."
   ]
 
   const filteredMembers = teamMembers.filter(member =>
@@ -130,15 +136,19 @@ const KudosCenter: React.FC = () => {
 
       recognitionRef.current.onstart = () => {
         setIsRecording(true)
+        toast.success('🎤 Recording started... Speak now!')
       }
 
       recognitionRef.current.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript
         setMessage(transcript)
+        toast.success('🎤 Voice captured successfully!')
         setIsRecording(false)
       }
 
-      recognitionRef.current.onerror = () => {
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error)
+        toast.error('Voice recognition failed. Please try again.')
         setIsRecording(false)
       }
 
@@ -148,7 +158,7 @@ const KudosCenter: React.FC = () => {
 
       recognitionRef.current.start()
     } else {
-      alert('Speech recognition not supported in this browser')
+      toast.error('Speech recognition not supported in this browser')
     }
   }
 
